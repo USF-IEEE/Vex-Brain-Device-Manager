@@ -61,7 +61,7 @@ typedef struct {
     uint8_t port; int GEAR_SET; int BREAK_MODE;
 } motor_initialize_callback_data;
 
-device_callback_return_code motor_device_initalize(TerriBull::DeviceManager* _motherSys, motor_initialize_callback_data data) {
+device_callback_return_code motor_device_initalize(DeviceManager* _motherSys, motor_initialize_callback_data data) {
     MotorDevice* device = (MotorDevice*) malloc(sizeof(MotorDevice));
     device->header.pros_device_type = pros::c::v5_device_e_t::E_DEVICE_MOTOR;
     device->header.port = data.port;
@@ -88,7 +88,7 @@ typedef struct  {
     int16_t velocity;
 } motor_set_velocity_callback_data;
 
-device_callback_return_code motor_device_set_velocity(TerriBull::DeviceManager* _motherSys, motor_set_velocity_callback_data data) {
+device_callback_return_code motor_device_set_velocity(DeviceManager* _motherSys, motor_set_velocity_callback_data data) {
     DeviceHeader* device = _motherSys->get_device(data.port);
     if (device != nullptr) return device_callback_return_code::DEVICE_NOT_EXIST;
     if( ! device->pros_device_type == pros::c::v5_device_e_t::E_DEVICE_MOTOR) return device_callback_return_code::DEVICE_TYPE_MISMATCH;

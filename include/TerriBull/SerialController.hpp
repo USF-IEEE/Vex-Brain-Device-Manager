@@ -13,7 +13,7 @@
 #define SERIALCONTROLLER_H
 
 #include <string>
-#include "./TerriBull.hpp"
+#include "./DeviceManager.hpp"
 #include "pros/apix.h" //added this in
 #include <vector>
 #include <iostream>
@@ -23,9 +23,9 @@
 
 using namespace std;
 
-class TerriBull::SerialController {
+class SerialController {
     public:
-    typedef void (*PacketCallback) (TerriBull::DeviceManager* robot, char * array, int start_index, int length);
+    typedef void (*PacketCallback) (DeviceManager* robot, char * array, int start_index, int length);
 
     typedef struct {
         PacketCallback callback;
@@ -40,20 +40,14 @@ class TerriBull::SerialController {
     } ScheduledUpdate;
 
     private:
-    vector<char> __next_packet;
-    static constexpr char __packet_header[4] = { (char)115, (char)111, (char)117, (char)116 };
+    
     static constexpr char __end_of_transmission[4] = { (char)0, (char)0, (char)10, (char)10 };
-    static const int __header_length = (sizeof(__packet_header) / sizeof(char));
-    static const int __footer_length = sizeof(__end_of_transmission) / sizeof(char);
-    static const int __packet_index_offset = 15;
-    bool isCollectingTags, tagExchange;
     map<int, CallbackItem*> Callbacks;
     map<int, CallbackItem*> tmpCallbacks;
     vector<ScheduledUpdate*> ScheduledUpdates;
-    TerriBull::DeviceManager* motherSys;
+    DeviceManager* motherSys;
 
-    bool CompareBuffer(vector<char> buffer1, int start, int end, char* buffer2);    
-    SerialController::CallbackItem* FindInternal(std::string tag_name);
+    void copyStringToBuffer(const std::string& input, uint8_t* buffer, size_t buffer_size);
 
     public:
 
@@ -66,31 +60,17 @@ class TerriBull::SerialController {
         while(true) 
         {
             std::cin.get(c);
-            std::unique_lock<pros::Mutex> lock(TerriBull::SerialController::input_mutex);
-            TerriBull::SerialController::input_buffer += c;
+            std::unique_lock<pros::Mutex> lock(SerialController::input_mutex);
+            SerialController::input_buffer += c;
             lock.unlock();
         }
     }
-    SerialController(TerriBull::DeviceManager* _motherSys);
-
-    static std::string SerializeNumber( double f );
-    static double DeserializeNumber( char *array, int *si );
-    static std::string SerializeString( std::string s );
-    //static std::string SerializeString( const char *s );
-    static std::string DeserializeString( char *array, int *si );
+    SerialController(DeviceManager* _motherSys);
     
     void ScheduleUpdate(std::string tag_name, float frequency);
-    void ExchangeTags();
-    int RegisterCallback(std::string tag_name, PacketCallback callback);
-    void DeserializePacket();
     void Update(float delta);
     bool ReadBuffer();
-    void processDataFromBuffer();
     void SendData(::std::string data);
-    void updateExchangeTags();
-    bool isInitialized();
-    void ProcessTagExchange(char * array, int start_index, int length);
-    int GetCallbackIndex(std::string tag_name);
 };
 
 

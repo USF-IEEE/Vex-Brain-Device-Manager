@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package TerriBullDevices;
+
+enum DeviceType {
+  DEVICE_NONE = 0;
+  DEVICE_MOTOR = 2;
+  DEVICE_ROTATION = 4;
+  DEVICE_IMU = 6;
+  DEVICE_DISTANCE = 7;
+  DEVICE_RADIO = 8;
+  DEVICE_VISION = 11;
+  DEVICE_ADI = 12;
+  DEVICE_OPTICAL = 16;
+  DEVICE_GPS = 20;
+  DEVICE_SERIAL = 129;
+}
+
+enum MotorGearSet {
+  GEARSET_36 = 0; // 100 RPM, Red gear set
+  GEARSET_18 = 1; // 200 RPM, Green gear set
+  GEARSET_06 = 2; // 600 RPM, Blue gear set
+  GEARSET_INVALID = 2147483647; // INT32_MAX, indicating an invalid value
+}
+
+enum MotorBrakeMode {
+  BRAKE_MODE_COAST = 0;
+  BRAKE_MODE_BRAKE = 1;
+  BRAKE_MODE_HOLD = 2;
+}
+
+enum DeviceCallbackReturnCode {
+  SUCCESS = 0;
+  DEVICE_TYPE_MISMATCH = 1;
+  DEVICE_NOT_EXIST = 2;
+}
+
+message DeviceHeader {
+  DeviceType pros_device_type = 1;
+  uint32 port = 2; // Changed from uint8 to uint32 because protobuf doesn't have uint8
+}
+
+message MotorDevice {
+  DeviceHeader header = 1;
+  float velocity = 2;
+  float current_draw = 3;
+  MotorGearSet gear_set = 4;
+  MotorBrakeMode break_mode = 5;
+  // Other motor-specific members can be added here as needed.
+}
+
+message IMUAccel {
+  float ax = 1;
+  float ay = 2;
+  float az = 3;
+}
+
+message IMUDevice {
+  DeviceHeader header = 1;
+  float roll = 2;
+  float yaw = 3;
+  float pitch = 4;
+  IMUAccel accel = 5;
+}
+
+message AnalogDevice {
+  DeviceHeader header = 1;
+  float value = 2;
+}
+
+// --- CALLBACK FUNCTIONS ---
+message MotorInitializeCallbackData {
+  uint32 port = 1;
+  MotorGearSet GEAR_SET = 2;
+  MotorBrakeMode BREAK_MODE = 3;
+}
+
+message MotorSetVelocityCallbackData {
+  uint32 port = 1;
+  int32 velocity = 2; // Assuming velocity can be negative, hence int32.
+}
+
+// Message to get the device values, which contains one of the Devices (Motor, IMU, Analog)
+message DeviceValue {
+  oneof device {
+    MotorDevice motorDevice = 1;
+    IMUDevice imuDevice = 2;
+    AnalogDevice analogDevice = 3;
+  }
+}
+
+// Message which calls a function and contains one of the callback data structs
+message FunctionCall {
+  oneof callbackData {
+    MotorInitializeCallbackData motorInitializeData = 1;
+    MotorSetVelocityCallbackData motorSetVelocityData = 2;
+    // ... TODO: ADD MORE CALLBACKS
+  }
+}
+
+// Now create a DeviceManager class which implements a C definition of the proto file and 

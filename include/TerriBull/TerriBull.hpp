@@ -34,10 +34,6 @@ namespace TerriBull {
      *
      */
     
-    /* Manages Serial Communication of the Robot */
-    class DeviceManager;
-    class SerialController;
-
     extern pros::Imu mu;
 
     };
@@ -45,7 +41,6 @@ namespace TerriBull {
     #define __TERRIBULL_INCLUDES__
 
     #include "../api.h"
-    #include "./SerialController.hpp"
     #endif
 
 #endif
