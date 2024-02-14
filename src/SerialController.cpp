@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "../../include/TerriBull/SerialController.hpp"
+#include "../include/TerriBull/SerialController.hpp"
 
 std::string SerialController::input_buffer;
 pros::Mutex SerialController::input_mutex;

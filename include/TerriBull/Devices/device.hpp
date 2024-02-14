@@ -1,7 +1,10 @@
 #ifndef __TERRIBULL_DEVICES__
 #define __TERRIBULL_DEVICES__
 
+extern class DeviceManager;
+
 #include "../TerriBull.hpp"
+#include "../DeviceManager.hpp"
 // namespace TerriBull {
 
 /**

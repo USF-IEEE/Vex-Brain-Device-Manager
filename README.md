@@ -33,17 +33,17 @@ You should now have generated the `.pb.h` and `.pb.c` files.
 
 ```bash
 mkdir ./obj/
-arm-none-eabi-gcc -c -o ./obj/vex.pb.o ./include/protos/vex.pb.c -I./nanopb/ -I. 
-arm-none-eabi-gcc -c -o ./obj/pb_encode.o ./nanopb/pb_encode.c -I./nanopb/ -I. 
-arm-none-eabi-gcc -c -o ./obj/pb_decode.o ./nanopb/pb_decode.c -I./nanopb/ -I. 
-arm-none-eabi-gcc -c -o ./obj/pb_common.o ./nanopb/pb_common.c -I./nanopb/ -I.
+arm-none-eabi-g++ -c -o ./obj/vex.pb.o ./include/protos/vex.pb.c -I./nanopb/ -I. 
+arm-none-eabi-g++ -c -o ./obj/pb_encode.o ./nanopb/pb_encode.c -I./nanopb/ -I. 
+arm-none-eabi-g++ -c -o ./obj/pb_decode.o ./nanopb/pb_decode.c -I./nanopb/ -I. 
+arm-none-eabi-g++ -c -o ./obj/pb_common.o ./nanopb/pb_common.c -I./nanopb/ -I.
 ```
 - You should now have the obj files linked in the obj/ directory.
 
 Run:
 
 ```bash
-ar rcs firmware/libvex.a obj/vex.pb.o obj/pb_encode.o obj/pb_decode.o obj/pb_common.o
+arm-none-eabi-ar rcs firmware/libvex.a obj/vex.pb.o obj/pb_encode.o obj/pb_decode.o obj/pb_common.o
 ```
 
 ## Usage
