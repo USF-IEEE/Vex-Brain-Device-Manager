@@ -33,6 +33,9 @@ PB_BIND(TerriBullDevices_DeviceValue, TerriBullDevices_DeviceValue, AUTO)
 PB_BIND(TerriBullDevices_FunctionCall, TerriBullDevices_FunctionCall, AUTO)
 
 
+PB_BIND(TerriBullDevices_ReturnData, TerriBullDevices_ReturnData, AUTO)
+
+
 
 
 

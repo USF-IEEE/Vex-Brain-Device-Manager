@@ -13,12 +13,12 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "../../include/TerriBull/SerialController.hpp"
+#include "../include/TerriBull/SerialController.hpp"
 
 std::string SerialController::input_buffer;
 pros::Mutex SerialController::input_mutex;
 
-SerialController::SerialController(DeviceManager *_motherSys) : motherSys(_motherSys), tagExchange(false), isCollectingTags(false)
+SerialController::SerialController(DeviceManager *_motherSys) : motherSys(_motherSys)
 {
     ::pros::c::serctl(SERCTL_DISABLE_COBS, nullptr);
     pros::Task input_task(SerialController::read_input_task);
@@ -26,16 +26,16 @@ SerialController::SerialController(DeviceManager *_motherSys) : motherSys(_mothe
 
 void SerialController::ScheduleUpdate(std::string tag_name, float frequency) 
 {
-    CallbackItem* update = this->FindInternal(tag_name);
-    if (update != nullptr) {
-        ScheduledUpdate* scheduledUpdate = new ScheduledUpdate();
-        scheduledUpdate->callbackItem = update;
-        scheduledUpdate->frequency = frequency;
-        this->ScheduledUpdates.push_back(scheduledUpdate);
-    }
-    else {
-        throw new exception;
-    }
+    // CallbackItem* update = this->FindInternal(tag_name);
+    // if (update != nullptr) {
+    //     ScheduledUpdate* scheduledUpdate = new ScheduledUpdate();
+    //     scheduledUpdate->callbackItem = update;
+    //     scheduledUpdate->frequency = frequency;
+    //     this->ScheduledUpdates.push_back(scheduledUpdate);
+    // }
+    // else {
+    //     throw new exception;
+    // }
 }
 
 void SerialController::Update(float delta)
@@ -92,16 +92,9 @@ bool SerialController::ReadBuffer()
 
 void SerialController::SendData(std::string data)
 {
-    for (auto c : SerialController::__packet_header)
-    {
-        std::cout << c;
-    }
     std::cout << data;
-    for (auto c : SerialController::__end_of_transmission)
+    for (char c : SerialController::__end_of_transmission)
     {
         std::cout << c;
     }
-
-    // std::cout << (char)0 << (char)0 << (char)10 << (char)10;
-    // std::cout << SerialController::__end_of_transmission;
 }

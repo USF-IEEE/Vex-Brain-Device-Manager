@@ -42,8 +42,6 @@ class SerialController {
     private:
     
     static constexpr char __end_of_transmission[4] = { (char)0, (char)0, (char)10, (char)10 };
-    map<int, CallbackItem*> Callbacks;
-    map<int, CallbackItem*> tmpCallbacks;
     vector<ScheduledUpdate*> ScheduledUpdates;
     DeviceManager* motherSys;
 

@@ -4,6 +4,9 @@
 #ifndef PB_TERRIBULLDEVICES_INCLUDE_PROTOS_VEX_PB_H_INCLUDED
 #define PB_TERRIBULLDEVICES_INCLUDE_PROTOS_VEX_PB_H_INCLUDED
 #include <pb.h>
+#include <pb_encode.h>
+#include <pb_decode.h>
+#include <pb_common.h>
 
 #if PB_PROTO_HEADER_VERSION != 40
 #error Regenerate this file with the current version of nanopb generator.
@@ -38,9 +41,10 @@ typedef enum _TerriBullDevices_MotorBrakeMode {
 } TerriBullDevices_MotorBrakeMode;
 
 typedef enum _TerriBullDevices_DeviceCallbackReturnCode {
-    TerriBullDevices_DeviceCallbackReturnCode_SUCCESS = 0,
-    TerriBullDevices_DeviceCallbackReturnCode_DEVICE_TYPE_MISMATCH = 1,
-    TerriBullDevices_DeviceCallbackReturnCode_DEVICE_NOT_EXIST = 2
+    TerriBullDevices_DeviceCallbackReturnCode_FUNC_NOT_FOUND = 0,
+    TerriBullDevices_DeviceCallbackReturnCode_SUCCESS = 1,
+    TerriBullDevices_DeviceCallbackReturnCode_DEVICE_TYPE_MISMATCH = 2,
+    TerriBullDevices_DeviceCallbackReturnCode_DEVICE_NOT_EXIST = 3
 } TerriBullDevices_DeviceCallbackReturnCode;
 
 /* Struct definitions */
@@ -111,6 +115,14 @@ typedef struct _TerriBullDevices_FunctionCall {
     } callbackData;
 } TerriBullDevices_FunctionCall;
 
+typedef struct _TerriBullDevices_ReturnData {
+    pb_size_t which_returnValue;
+    union {
+        TerriBullDevices_DeviceValue deviceValue;
+    } returnValue;
+    TerriBullDevices_DeviceCallbackReturnCode return_code;
+} TerriBullDevices_ReturnData;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -129,7 +141,7 @@ extern "C" {
 #define _TerriBullDevices_MotorBrakeMode_MAX TerriBullDevices_MotorBrakeMode_BRAKE_MODE_HOLD
 #define _TerriBullDevices_MotorBrakeMode_ARRAYSIZE ((TerriBullDevices_MotorBrakeMode)(TerriBullDevices_MotorBrakeMode_BRAKE_MODE_HOLD+1))
 
-#define _TerriBullDevices_DeviceCallbackReturnCode_MIN TerriBullDevices_DeviceCallbackReturnCode_SUCCESS
+#define _TerriBullDevices_DeviceCallbackReturnCode_MIN TerriBullDevices_DeviceCallbackReturnCode_FUNC_NOT_FOUND
 #define _TerriBullDevices_DeviceCallbackReturnCode_MAX TerriBullDevices_DeviceCallbackReturnCode_DEVICE_NOT_EXIST
 #define _TerriBullDevices_DeviceCallbackReturnCode_ARRAYSIZE ((TerriBullDevices_DeviceCallbackReturnCode)(TerriBullDevices_DeviceCallbackReturnCode_DEVICE_NOT_EXIST+1))
 
@@ -147,6 +159,8 @@ extern "C" {
 
 
 
+#define TerriBullDevices_ReturnData_return_code_ENUMTYPE TerriBullDevices_DeviceCallbackReturnCode
+
 
 /* Initializer values for message structs */
 #define TerriBullDevices_DeviceHeader_init_default {_TerriBullDevices_DeviceType_MIN, 0}
@@ -158,6 +172,7 @@ extern "C" {
 #define TerriBullDevices_MotorSetVelocityCallbackData_init_default {0, 0}
 #define TerriBullDevices_DeviceValue_init_default {0, {TerriBullDevices_MotorDevice_init_default}}
 #define TerriBullDevices_FunctionCall_init_default {0, {TerriBullDevices_MotorInitializeCallbackData_init_default}}
+#define TerriBullDevices_ReturnData_init_default {0, {TerriBullDevices_DeviceValue_init_default}, _TerriBullDevices_DeviceCallbackReturnCode_MIN}
 #define TerriBullDevices_DeviceHeader_init_zero  {_TerriBullDevices_DeviceType_MIN, 0}
 #define TerriBullDevices_MotorDevice_init_zero   {false, TerriBullDevices_DeviceHeader_init_zero, 0, 0, _TerriBullDevices_MotorGearSet_MIN, _TerriBullDevices_MotorBrakeMode_MIN}
 #define TerriBullDevices_IMUAccel_init_zero      {0, 0, 0}
@@ -167,6 +182,7 @@ extern "C" {
 #define TerriBullDevices_MotorSetVelocityCallbackData_init_zero {0, 0}
 #define TerriBullDevices_DeviceValue_init_zero   {0, {TerriBullDevices_MotorDevice_init_zero}}
 #define TerriBullDevices_FunctionCall_init_zero  {0, {TerriBullDevices_MotorInitializeCallbackData_init_zero}}
+#define TerriBullDevices_ReturnData_init_zero    {0, {TerriBullDevices_DeviceValue_init_zero}, _TerriBullDevices_DeviceCallbackReturnCode_MIN}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define TerriBullDevices_DeviceHeader_pros_device_type_tag 1
@@ -196,6 +212,8 @@ extern "C" {
 #define TerriBullDevices_DeviceValue_analogDevice_tag 3
 #define TerriBullDevices_FunctionCall_motorInitializeData_tag 1
 #define TerriBullDevices_FunctionCall_motorSetVelocityData_tag 2
+#define TerriBullDevices_ReturnData_deviceValue_tag 1
+#define TerriBullDevices_ReturnData_return_code_tag 2
 
 /* Struct field encoding specification for nanopb */
 #define TerriBullDevices_DeviceHeader_FIELDLIST(X, a) \
@@ -270,6 +288,13 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (callbackData,motorSetVelocityData,callbackDa
 #define TerriBullDevices_FunctionCall_callbackData_motorInitializeData_MSGTYPE TerriBullDevices_MotorInitializeCallbackData
 #define TerriBullDevices_FunctionCall_callbackData_motorSetVelocityData_MSGTYPE TerriBullDevices_MotorSetVelocityCallbackData
 
+#define TerriBullDevices_ReturnData_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (returnValue,deviceValue,returnValue.deviceValue),   1) \
+X(a, STATIC,   SINGULAR, UENUM,    return_code,       2)
+#define TerriBullDevices_ReturnData_CALLBACK NULL
+#define TerriBullDevices_ReturnData_DEFAULT NULL
+#define TerriBullDevices_ReturnData_returnValue_deviceValue_MSGTYPE TerriBullDevices_DeviceValue
+
 extern const pb_msgdesc_t TerriBullDevices_DeviceHeader_msg;
 extern const pb_msgdesc_t TerriBullDevices_MotorDevice_msg;
 extern const pb_msgdesc_t TerriBullDevices_IMUAccel_msg;
@@ -279,6 +304,7 @@ extern const pb_msgdesc_t TerriBullDevices_MotorInitializeCallbackData_msg;
 extern const pb_msgdesc_t TerriBullDevices_MotorSetVelocityCallbackData_msg;
 extern const pb_msgdesc_t TerriBullDevices_DeviceValue_msg;
 extern const pb_msgdesc_t TerriBullDevices_FunctionCall_msg;
+extern const pb_msgdesc_t TerriBullDevices_ReturnData_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define TerriBullDevices_DeviceHeader_fields &TerriBullDevices_DeviceHeader_msg
@@ -290,9 +316,10 @@ extern const pb_msgdesc_t TerriBullDevices_FunctionCall_msg;
 #define TerriBullDevices_MotorSetVelocityCallbackData_fields &TerriBullDevices_MotorSetVelocityCallbackData_msg
 #define TerriBullDevices_DeviceValue_fields &TerriBullDevices_DeviceValue_msg
 #define TerriBullDevices_FunctionCall_fields &TerriBullDevices_FunctionCall_msg
+#define TerriBullDevices_ReturnData_fields &TerriBullDevices_ReturnData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define TERRIBULLDEVICES_INCLUDE_PROTOS_VEX_PB_H_MAX_SIZE TerriBullDevices_DeviceValue_size
+#define TERRIBULLDEVICES_INCLUDE_PROTOS_VEX_PB_H_MAX_SIZE TerriBullDevices_ReturnData_size
 #define TerriBullDevices_AnalogDevice_size       16
 #define TerriBullDevices_DeviceHeader_size       9
 #define TerriBullDevices_DeviceValue_size        45
@@ -302,6 +329,7 @@ extern const pb_msgdesc_t TerriBullDevices_FunctionCall_msg;
 #define TerriBullDevices_MotorDevice_size        29
 #define TerriBullDevices_MotorInitializeCallbackData_size 14
 #define TerriBullDevices_MotorSetVelocityCallbackData_size 17
+#define TerriBullDevices_ReturnData_size         49
 
 #ifdef __cplusplus
 } /* extern "C" */

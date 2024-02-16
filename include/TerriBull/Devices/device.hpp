@@ -2,7 +2,8 @@
 #define __TERRIBULL_DEVICES__
 
 #include "../TerriBull.hpp"
-// namespace TerriBull {
+
+class DeviceManager;
 
 /**
  * E_DEVICE_NONE = 0,
@@ -17,7 +18,7 @@
  * E_DEVICE_GPS = 20,
  * E_DEVICE_SERIAL = 129,
  */
-typedef struct  {
+typedef struct {
     pros::c::v5_device_e_t pros_device_type;
     uint8_t port;
 } DeviceHeader;
@@ -36,9 +37,10 @@ typedef struct  {
  */
 
 typedef enum device_callback_return_code {
-    SUCCESS = 0,
-    DEVICE_TYPE_MISMATCH = 1,
-    DEVICE_NOT_EXIST = 2,
+    FUNC_NOT_FOUND = 0,
+    SUCCESS = 1,
+    DEVICE_TYPE_MISMATCH = 2,
+    DEVICE_NOT_EXIST = 3
 };
 
 typedef struct {
@@ -50,30 +52,11 @@ typedef struct {
     // Other motor-specific members
 } MotorDevice;
 
-/**
- * @brief Should Initialize device with Port and proto data
- * 
- * @param port 
- * @param data contains {uint8_t port, int GEAR_SET, int BREAK_MODE}
- * @return device_callback_return_code 
- */
+
 typedef struct {
     uint8_t port; int GEAR_SET; int BREAK_MODE;
 } motor_initialize_callback_data;
 
-device_callback_return_code motor_device_initalize(DeviceManager* _motherSys, motor_initialize_callback_data data) {
-    MotorDevice* device = (MotorDevice*) malloc(sizeof(MotorDevice));
-    device->header.pros_device_type = pros::c::v5_device_e_t::E_DEVICE_MOTOR;
-    device->header.port = data.port;
-    device->gear_set = (pros::motor_gearset_e_t) data.GEAR_SET;
-    device->break_mode = (pros::motor_brake_mode_e_t) data.BREAK_MODE;
-    pros::c::motor_tare_position(device->header.port);
-    pros::c::motor_set_brake_mode(device->header.port, device->break_mode);
-    pros::c::motor_set_gearing(device->header.port, device->gear_set);
-    device->velocity = pros::c::motor_get_actual_velocity(device->header.port);
-    _motherSys->add_device(device); // pointer to device
-    return device_callback_return_code::SUCCESS;
-}
 
 /**
  * @brief Should set motors velocity to the proto data
@@ -88,19 +71,10 @@ typedef struct  {
     int16_t velocity;
 } motor_set_velocity_callback_data;
 
-device_callback_return_code motor_device_set_velocity(DeviceManager* _motherSys, motor_set_velocity_callback_data data) {
-    DeviceHeader* device = _motherSys->get_device(data.port);
-    if (device != nullptr) return device_callback_return_code::DEVICE_NOT_EXIST;
-    if( ! device->pros_device_type == pros::c::v5_device_e_t::E_DEVICE_MOTOR) return device_callback_return_code::DEVICE_TYPE_MISMATCH;
-
-    MotorDevice* motor = static_cast<MotorDevice*>((void*)device);
-    pros::c::motor_move_velocity(motor->header.port, data.velocity);
-    return device_callback_return_code::SUCCESS;
-}
 
 
 typedef struct {
-    DeviceHeader header; // First member is the DeviceHeader
+    DeviceHeader header; 
     float roll;
     float yaw;
     float pitch;
@@ -108,8 +82,31 @@ typedef struct {
 } IMUDevice;
 
 typedef struct {
-    DeviceHeader header; // First member is the DeviceHeader
+    DeviceHeader header;
     float value;
 } AnalogDevice;
+
+
+#include "../DeviceManager.hpp"
+
+// Callbacks and Function Definitions
+
+/**
+ * @brief Should Initialize motor device with Port and proto data
+ * 
+ * @param data contains {uint8_t port, int GEAR_SET, int BREAK_MODE}
+ * @return device_callback_return_code 
+ */
+device_callback_return_code motor_device_initalize(DeviceManager* _motherSys, motor_initialize_callback_data data);
+/**
+ * @brief Should set motors velocity to the proto data
+ * 
+ * @param port 
+ * @param data contains {uint8_t port, int GEAR_SET, int BREAK_MODE}
+ * @return device_callback_return_code 
+ * This velocity corresponds to different actual speeds depending on the gearset used for the motor. This results in a range of +-100 for E_MOTOR_GEARSET_36, +-200 for E_MOTOR_GEARSET_18, and +-600 for blue. The velocity is held with PID to ensure consistent speed, as opposed to setting the motor’s voltage.
+ */
+device_callback_return_code motor_device_set_velocity(DeviceManager* _motherSys, motor_set_velocity_callback_data data);
+
 
 #endif
