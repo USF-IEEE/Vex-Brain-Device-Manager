@@ -21,7 +21,7 @@ The TerriBull Device Manager is a comprehensive system designed for managing var
 ### Creating protobuf Definitions:
 1. Ensure `nanopb` is installed in the project.
 2. cd into project
-3. 
+
 ```bash
 python python nanopb/generator/nanopb_generator.py --out=. ./include/protos/vex.proto
 ```
@@ -64,7 +64,7 @@ arm-none-eabi-ar rcs firmware/libvex.a obj/vex.pb.o obj/pb_encode.o obj/pb_decod
 - An error will occur if 
 Run:
 ```bash
-pros build
+pros build --verbose
 ```
 
 ## Usage
