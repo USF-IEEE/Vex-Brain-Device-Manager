@@ -1,0 +1,74 @@
+name: Vex Device Manager Workflow: Ubuntu
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    # Set up Python 3.10
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+
+    # Install Python dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+
+    # Install PROS CLI
+    - name: Install PROS CLI
+      run: |
+        pip install pros-cli
+
+    # Install nanopb
+    - name: Install nanopb
+      run: |
+        # Assuming nanopb is included as a submodule, initialize and update submodules
+        git submodule update --init --recursive
+
+    # Generate protobuf definitions
+    - name: Generate protobuf definitions
+      run: |
+        python nanopb/generator/nanopb_generator.py --out=. ./include/protos/vex.proto
+    
+    # Modify vex.pb.h to include additional headers
+    - name: Modify vex.pb.h header
+      run: |
+        sed -i '/#include <pb.h>/a #include <pb_encode.h>\n#include <pb_decode.h>\n#include <pb_common.h>' include/protos/vex.pb.h
+    
+    # Install arm-none-eabi-gcc toolset
+    - name: Install arm-none-eabi-gcc
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-arm-none-eabi
+
+    # Compile protobuf source files
+    - name: Compile protobuf source files
+      run: |
+        mkdir -p ./obj/
+        arm-none-eabi-g++ -c -o ./obj/vex.pb.o ./include/protos/vex.pb.c -I./nanopb/ -I. 
+        arm-none-eabi-g++ -c -o ./obj/pb_encode.o ./nanopb/pb_encode.c -I./nanopb/ -I. 
+        arm-none-eabi-g++ -c -o ./obj/pb_decode.o ./nanopb/pb_decode.c -I./nanopb/ -I. 
+        arm-none-eabi-g++ -c -o ./obj/pb_common.o ./nanopb/pb_common.c -I./nanopb/ -I.
+
+    # Create static library
+    - name: Create static library
+      run: |
+        arm-none-eabi-ar rcs firmware/libvex.a obj/vex.pb.o obj/pb_encode.o obj/pb_decode.o obj/pb_common.o
+
+    # Build with PROS
+    - name: Build with PROS
+      run: |
+        pros build --verbose
