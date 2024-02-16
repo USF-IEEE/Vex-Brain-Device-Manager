@@ -1,4 +1,4 @@
-name: Vex Device Manager Workflow: Ubuntu
+name: Vex Device Manager Workflow Ubuntu
 
 on:
   push:
