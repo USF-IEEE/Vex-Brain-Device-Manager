@@ -37,6 +37,7 @@ jobs:
       run: |
         # Assuming nanopb is included as a submodule, initialize and update submodules
         git submodule update --init --recursive
+        pip install protobuf grpcio-tools 
 
     # Generate protobuf definitions
     - name: Generate protobuf definitions
