@@ -30,9 +30,10 @@ enum MotorBrakeMode {
 }
 
 enum DeviceCallbackReturnCode {
-  SUCCESS = 0;
-  DEVICE_TYPE_MISMATCH = 1;
-  DEVICE_NOT_EXIST = 2;
+  FUNC_NOT_FOUND = 0;
+  SUCCESS = 1;
+  DEVICE_TYPE_MISMATCH = 2;
+  DEVICE_NOT_EXIST = 3;
 }
 
 message DeviceHeader {
@@ -98,4 +99,9 @@ message FunctionCall {
   }
 }
 
-// Now create a DeviceManager class which implements a C definition of the proto file and 
+message ReturnData {
+  oneof returnValue {
+    DeviceValue deviceValue = 1;
+  }
+  DeviceCallbackReturnCode return_code = 2;
+}

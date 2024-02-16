@@ -11,11 +11,11 @@ bool DeviceManager::serializeMessage(const TerriBullDevices_FunctionCall* messag
     return true;
 }
 
-void DeviceManager::add_device(TerriBullDevices_DeviceHeader* device) {
+void DeviceManager::add_device(DeviceHeader* device) {
     devices[device->port] = device;
 }
 
-TerriBullDevices_DeviceHeader* DeviceManager::get_device(uint32_t port) {
+DeviceHeader* DeviceManager::get_device(uint32_t port) {
     auto it = devices.find(port);
     if (it != devices.end()) {
         return it->second;
@@ -32,7 +32,33 @@ bool DeviceManager::processMessage(const uint8_t* buffer, size_t size) {
     }
 
     // Process the message based on its type
-    // Example: if (message.which_callbackData == TerriBullDevices_FunctionCall_motorInitializeData_tag) {...}
+    device_callback_return_code r_code = FUNC_NOT_FOUND;
+    switch (message.which_callbackData) {
+        case TerriBullDevices_FunctionCall_motorInitializeData_tag: {
+            motor_initialize_callback_data data;
+            data.port = message.callbackData.motorInitializeData.port;
+            data.GEAR_SET = message.callbackData.motorInitializeData.GEAR_SET;
+            data.BREAK_MODE = message.callbackData.motorInitializeData.BREAK_MODE;
+            r_code = motor_device_initalize(this, data);
+            break;
+        }
+            
+        
+        case TerriBullDevices_FunctionCall_motorSetVelocityData_tag: {
+            motor_set_velocity_callback_data data;
+            data.port = message.callbackData.motorSetVelocityData.port;
+            data.velocity = message.callbackData.motorSetVelocityData.velocity;
+            r_code = motor_device_set_velocity(this, data);
+            break;
+        }
+        
+        // case TerriBullDevices_FunctionCall_...
+
+        default:
+            break;
+    }
+
+    // TODO: CREATE A RETURN MESSAGE BASED ON EACH FUNCTION CALL
 
     return true;
 }
