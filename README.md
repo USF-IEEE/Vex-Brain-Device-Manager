@@ -1,7 +1,7 @@
 # TerriBull Device Manager
 
 ## Overview
-The TerriBull Device Manager is a comprehensive system designed for managing various types of robotic devices. It provides a framework for initializing and controlling devices such as motors, IMUs, and other peripherals using a unified interface. This system is built on top of the PROS library for VEX Robotics, leveraging its functionalities for device communication and control.
+The TerriBull Device Manager is a comprehensive system designed for managing various types of VEX devices. It provides a framework for initializing and controlling devices such as motors, IMUs, and other peripherals using a unified interface. This system is built on top of the PROS library for VEX Robotics, leveraging its functionalities for device communication and control. More specific documentation related to using the library will be coming soon.
 
 ## Features
 - **Device Support**: Supports a wide range of devices including motors, IMUs, distance sensors, vision sensors, and more.
@@ -12,6 +12,7 @@ The TerriBull Device Manager is a comprehensive system designed for managing var
 ## Requirements
 - PROS library for VEX Robotics
 - nanopb
+- arm-none-eabi compiler Toolset for Linux or WSL
 
 ## Installation/Compilation
 1. Ensure the PROS library is installed and properly configured in your development environment.
