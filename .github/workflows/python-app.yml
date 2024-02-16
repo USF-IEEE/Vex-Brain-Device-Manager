@@ -36,7 +36,7 @@ jobs:
     - name: Install nanopb
       run: |
         # Assuming nanopb is included as a submodule, initialize and update submodules
-        git submodule update --init --recursive
+        # git submodule update --init --recursive
 
     # Generate protobuf definitions
     - name: Generate protobuf definitions
