@@ -24,7 +24,8 @@ typedef enum _TerriBullDevices_DeviceType {
     TerriBullDevices_DeviceType_DEVICE_ADI = 12,
     TerriBullDevices_DeviceType_DEVICE_OPTICAL = 16,
     TerriBullDevices_DeviceType_DEVICE_GPS = 20,
-    TerriBullDevices_DeviceType_DEVICE_SERIAL = 129
+    TerriBullDevices_DeviceType_DEVICE_SERIAL = 129,
+    TerriBullDevices_DeviceType_DEVICE_CONTROLLER = 242
 } TerriBullDevices_DeviceType;
 
 typedef enum _TerriBullDevices_MotorGearSet {
@@ -62,6 +63,12 @@ typedef struct _TerriBullDevices_MotorDevice {
     TerriBullDevices_MotorBrakeMode break_mode; /* Other motor-specific members can be added here as needed. */
 } TerriBullDevices_MotorDevice;
 
+typedef struct _TerriBullDevices_RotationSensorDevice {
+    bool has_header;
+    TerriBullDevices_DeviceHeader header;
+    double position;
+} TerriBullDevices_RotationSensorDevice;
+
 typedef struct _TerriBullDevices_IMUAccel {
     float ax;
     float ay;
@@ -96,13 +103,26 @@ typedef struct _TerriBullDevices_MotorSetVelocityCallbackData {
     int32_t velocity; /* Assuming velocity can be negative, hence int32. */
 } TerriBullDevices_MotorSetVelocityCallbackData;
 
-/* Message to get the device values, which contains one of the Devices (Motor, IMU, Analog) */
+typedef struct _TerriBullDevices_RotationSensorInitializeCallbackData {
+    uint32_t port;
+} TerriBullDevices_RotationSensorInitializeCallbackData;
+
+typedef struct _TerriBullDevices_RotationSensorSetPositionCallbackData {
+    uint32_t port;
+    double position;
+} TerriBullDevices_RotationSensorSetPositionCallbackData;
+
+typedef struct _TerriBullDevices_RotationSensorResetPositionCallbackData {
+    uint32_t port;
+} TerriBullDevices_RotationSensorResetPositionCallbackData;
+
 typedef struct _TerriBullDevices_DeviceValue {
     pb_size_t which_device;
     union {
         TerriBullDevices_MotorDevice motorDevice;
         TerriBullDevices_IMUDevice imuDevice;
         TerriBullDevices_AnalogDevice analogDevice;
+        TerriBullDevices_RotationSensorDevice rotationSensorDevice;
     } device;
 } TerriBullDevices_DeviceValue;
 
@@ -111,7 +131,10 @@ typedef struct _TerriBullDevices_FunctionCall {
     pb_size_t which_callbackData;
     union {
         TerriBullDevices_MotorInitializeCallbackData motorInitializeData;
-        TerriBullDevices_MotorSetVelocityCallbackData motorSetVelocityData; /* ... TODO: ADD MORE CALLBACKS */
+        TerriBullDevices_MotorSetVelocityCallbackData motorSetVelocityData;
+        TerriBullDevices_RotationSensorInitializeCallbackData rotationSensorInitializeData;
+        TerriBullDevices_RotationSensorResetPositionCallbackData rotationSensorResetPositionData;
+        TerriBullDevices_RotationSensorSetPositionCallbackData rotationSensorSetPositionData;
     } callbackData;
 } TerriBullDevices_FunctionCall;
 
@@ -130,8 +153,8 @@ extern "C" {
 
 /* Helper constants for enums */
 #define _TerriBullDevices_DeviceType_MIN TerriBullDevices_DeviceType_DEVICE_NONE
-#define _TerriBullDevices_DeviceType_MAX TerriBullDevices_DeviceType_DEVICE_SERIAL
-#define _TerriBullDevices_DeviceType_ARRAYSIZE ((TerriBullDevices_DeviceType)(TerriBullDevices_DeviceType_DEVICE_SERIAL+1))
+#define _TerriBullDevices_DeviceType_MAX TerriBullDevices_DeviceType_DEVICE_CONTROLLER
+#define _TerriBullDevices_DeviceType_ARRAYSIZE ((TerriBullDevices_DeviceType)(TerriBullDevices_DeviceType_DEVICE_CONTROLLER+1))
 
 #define _TerriBullDevices_MotorGearSet_MIN TerriBullDevices_MotorGearSet_GEARSET_36
 #define _TerriBullDevices_MotorGearSet_MAX TerriBullDevices_MotorGearSet_GEARSET_INVALID
@@ -153,8 +176,12 @@ extern "C" {
 
 
 
+
 #define TerriBullDevices_MotorInitializeCallbackData_GEAR_SET_ENUMTYPE TerriBullDevices_MotorGearSet
 #define TerriBullDevices_MotorInitializeCallbackData_BREAK_MODE_ENUMTYPE TerriBullDevices_MotorBrakeMode
+
+
+
 
 
 
@@ -165,21 +192,29 @@ extern "C" {
 /* Initializer values for message structs */
 #define TerriBullDevices_DeviceHeader_init_default {_TerriBullDevices_DeviceType_MIN, 0}
 #define TerriBullDevices_MotorDevice_init_default {false, TerriBullDevices_DeviceHeader_init_default, 0, 0, _TerriBullDevices_MotorGearSet_MIN, _TerriBullDevices_MotorBrakeMode_MIN}
+#define TerriBullDevices_RotationSensorDevice_init_default {false, TerriBullDevices_DeviceHeader_init_default, 0}
 #define TerriBullDevices_IMUAccel_init_default   {0, 0, 0}
 #define TerriBullDevices_IMUDevice_init_default  {false, TerriBullDevices_DeviceHeader_init_default, 0, 0, 0, false, TerriBullDevices_IMUAccel_init_default}
 #define TerriBullDevices_AnalogDevice_init_default {false, TerriBullDevices_DeviceHeader_init_default, 0}
 #define TerriBullDevices_MotorInitializeCallbackData_init_default {0, _TerriBullDevices_MotorGearSet_MIN, _TerriBullDevices_MotorBrakeMode_MIN}
 #define TerriBullDevices_MotorSetVelocityCallbackData_init_default {0, 0}
+#define TerriBullDevices_RotationSensorInitializeCallbackData_init_default {0}
+#define TerriBullDevices_RotationSensorSetPositionCallbackData_init_default {0, 0}
+#define TerriBullDevices_RotationSensorResetPositionCallbackData_init_default {0}
 #define TerriBullDevices_DeviceValue_init_default {0, {TerriBullDevices_MotorDevice_init_default}}
 #define TerriBullDevices_FunctionCall_init_default {0, {TerriBullDevices_MotorInitializeCallbackData_init_default}}
 #define TerriBullDevices_ReturnData_init_default {0, {TerriBullDevices_DeviceValue_init_default}, _TerriBullDevices_DeviceCallbackReturnCode_MIN}
 #define TerriBullDevices_DeviceHeader_init_zero  {_TerriBullDevices_DeviceType_MIN, 0}
 #define TerriBullDevices_MotorDevice_init_zero   {false, TerriBullDevices_DeviceHeader_init_zero, 0, 0, _TerriBullDevices_MotorGearSet_MIN, _TerriBullDevices_MotorBrakeMode_MIN}
+#define TerriBullDevices_RotationSensorDevice_init_zero {false, TerriBullDevices_DeviceHeader_init_zero, 0}
 #define TerriBullDevices_IMUAccel_init_zero      {0, 0, 0}
 #define TerriBullDevices_IMUDevice_init_zero     {false, TerriBullDevices_DeviceHeader_init_zero, 0, 0, 0, false, TerriBullDevices_IMUAccel_init_zero}
 #define TerriBullDevices_AnalogDevice_init_zero  {false, TerriBullDevices_DeviceHeader_init_zero, 0}
 #define TerriBullDevices_MotorInitializeCallbackData_init_zero {0, _TerriBullDevices_MotorGearSet_MIN, _TerriBullDevices_MotorBrakeMode_MIN}
 #define TerriBullDevices_MotorSetVelocityCallbackData_init_zero {0, 0}
+#define TerriBullDevices_RotationSensorInitializeCallbackData_init_zero {0}
+#define TerriBullDevices_RotationSensorSetPositionCallbackData_init_zero {0, 0}
+#define TerriBullDevices_RotationSensorResetPositionCallbackData_init_zero {0}
 #define TerriBullDevices_DeviceValue_init_zero   {0, {TerriBullDevices_MotorDevice_init_zero}}
 #define TerriBullDevices_FunctionCall_init_zero  {0, {TerriBullDevices_MotorInitializeCallbackData_init_zero}}
 #define TerriBullDevices_ReturnData_init_zero    {0, {TerriBullDevices_DeviceValue_init_zero}, _TerriBullDevices_DeviceCallbackReturnCode_MIN}
@@ -192,6 +227,8 @@ extern "C" {
 #define TerriBullDevices_MotorDevice_current_draw_tag 3
 #define TerriBullDevices_MotorDevice_gear_set_tag 4
 #define TerriBullDevices_MotorDevice_break_mode_tag 5
+#define TerriBullDevices_RotationSensorDevice_header_tag 1
+#define TerriBullDevices_RotationSensorDevice_position_tag 2
 #define TerriBullDevices_IMUAccel_ax_tag         1
 #define TerriBullDevices_IMUAccel_ay_tag         2
 #define TerriBullDevices_IMUAccel_az_tag         3
@@ -207,11 +244,19 @@ extern "C" {
 #define TerriBullDevices_MotorInitializeCallbackData_BREAK_MODE_tag 3
 #define TerriBullDevices_MotorSetVelocityCallbackData_port_tag 1
 #define TerriBullDevices_MotorSetVelocityCallbackData_velocity_tag 2
+#define TerriBullDevices_RotationSensorInitializeCallbackData_port_tag 1
+#define TerriBullDevices_RotationSensorSetPositionCallbackData_port_tag 1
+#define TerriBullDevices_RotationSensorSetPositionCallbackData_position_tag 2
+#define TerriBullDevices_RotationSensorResetPositionCallbackData_port_tag 1
 #define TerriBullDevices_DeviceValue_motorDevice_tag 1
 #define TerriBullDevices_DeviceValue_imuDevice_tag 2
 #define TerriBullDevices_DeviceValue_analogDevice_tag 3
+#define TerriBullDevices_DeviceValue_rotationSensorDevice_tag 4
 #define TerriBullDevices_FunctionCall_motorInitializeData_tag 1
 #define TerriBullDevices_FunctionCall_motorSetVelocityData_tag 2
+#define TerriBullDevices_FunctionCall_rotationSensorInitializeData_tag 3
+#define TerriBullDevices_FunctionCall_rotationSensorResetPositionData_tag 4
+#define TerriBullDevices_FunctionCall_rotationSensorSetPositionData_tag 5
 #define TerriBullDevices_ReturnData_deviceValue_tag 1
 #define TerriBullDevices_ReturnData_return_code_tag 2
 
@@ -231,6 +276,13 @@ X(a, STATIC,   SINGULAR, UENUM,    break_mode,        5)
 #define TerriBullDevices_MotorDevice_CALLBACK NULL
 #define TerriBullDevices_MotorDevice_DEFAULT NULL
 #define TerriBullDevices_MotorDevice_header_MSGTYPE TerriBullDevices_DeviceHeader
+
+#define TerriBullDevices_RotationSensorDevice_FIELDLIST(X, a) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  header,            1) \
+X(a, STATIC,   SINGULAR, DOUBLE,   position,          2)
+#define TerriBullDevices_RotationSensorDevice_CALLBACK NULL
+#define TerriBullDevices_RotationSensorDevice_DEFAULT NULL
+#define TerriBullDevices_RotationSensorDevice_header_MSGTYPE TerriBullDevices_DeviceHeader
 
 #define TerriBullDevices_IMUAccel_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, FLOAT,    ax,                1) \
@@ -270,23 +322,47 @@ X(a, STATIC,   SINGULAR, INT32,    velocity,          2)
 #define TerriBullDevices_MotorSetVelocityCallbackData_CALLBACK NULL
 #define TerriBullDevices_MotorSetVelocityCallbackData_DEFAULT NULL
 
+#define TerriBullDevices_RotationSensorInitializeCallbackData_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   port,              1)
+#define TerriBullDevices_RotationSensorInitializeCallbackData_CALLBACK NULL
+#define TerriBullDevices_RotationSensorInitializeCallbackData_DEFAULT NULL
+
+#define TerriBullDevices_RotationSensorSetPositionCallbackData_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   port,              1) \
+X(a, STATIC,   SINGULAR, DOUBLE,   position,          2)
+#define TerriBullDevices_RotationSensorSetPositionCallbackData_CALLBACK NULL
+#define TerriBullDevices_RotationSensorSetPositionCallbackData_DEFAULT NULL
+
+#define TerriBullDevices_RotationSensorResetPositionCallbackData_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   port,              1)
+#define TerriBullDevices_RotationSensorResetPositionCallbackData_CALLBACK NULL
+#define TerriBullDevices_RotationSensorResetPositionCallbackData_DEFAULT NULL
+
 #define TerriBullDevices_DeviceValue_FIELDLIST(X, a) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (device,motorDevice,device.motorDevice),   1) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (device,imuDevice,device.imuDevice),   2) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (device,analogDevice,device.analogDevice),   3)
+X(a, STATIC,   ONEOF,    MESSAGE,  (device,analogDevice,device.analogDevice),   3) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (device,rotationSensorDevice,device.rotationSensorDevice),   4)
 #define TerriBullDevices_DeviceValue_CALLBACK NULL
 #define TerriBullDevices_DeviceValue_DEFAULT NULL
 #define TerriBullDevices_DeviceValue_device_motorDevice_MSGTYPE TerriBullDevices_MotorDevice
 #define TerriBullDevices_DeviceValue_device_imuDevice_MSGTYPE TerriBullDevices_IMUDevice
 #define TerriBullDevices_DeviceValue_device_analogDevice_MSGTYPE TerriBullDevices_AnalogDevice
+#define TerriBullDevices_DeviceValue_device_rotationSensorDevice_MSGTYPE TerriBullDevices_RotationSensorDevice
 
 #define TerriBullDevices_FunctionCall_FIELDLIST(X, a) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (callbackData,motorInitializeData,callbackData.motorInitializeData),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (callbackData,motorSetVelocityData,callbackData.motorSetVelocityData),   2)
+X(a, STATIC,   ONEOF,    MESSAGE,  (callbackData,motorSetVelocityData,callbackData.motorSetVelocityData),   2) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (callbackData,rotationSensorInitializeData,callbackData.rotationSensorInitializeData),   3) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (callbackData,rotationSensorResetPositionData,callbackData.rotationSensorResetPositionData),   4) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (callbackData,rotationSensorSetPositionData,callbackData.rotationSensorSetPositionData),   5)
 #define TerriBullDevices_FunctionCall_CALLBACK NULL
 #define TerriBullDevices_FunctionCall_DEFAULT NULL
 #define TerriBullDevices_FunctionCall_callbackData_motorInitializeData_MSGTYPE TerriBullDevices_MotorInitializeCallbackData
 #define TerriBullDevices_FunctionCall_callbackData_motorSetVelocityData_MSGTYPE TerriBullDevices_MotorSetVelocityCallbackData
+#define TerriBullDevices_FunctionCall_callbackData_rotationSensorInitializeData_MSGTYPE TerriBullDevices_RotationSensorInitializeCallbackData
+#define TerriBullDevices_FunctionCall_callbackData_rotationSensorResetPositionData_MSGTYPE TerriBullDevices_RotationSensorResetPositionCallbackData
+#define TerriBullDevices_FunctionCall_callbackData_rotationSensorSetPositionData_MSGTYPE TerriBullDevices_RotationSensorSetPositionCallbackData
 
 #define TerriBullDevices_ReturnData_FIELDLIST(X, a) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (returnValue,deviceValue,returnValue.deviceValue),   1) \
@@ -297,11 +373,15 @@ X(a, STATIC,   SINGULAR, UENUM,    return_code,       2)
 
 extern const pb_msgdesc_t TerriBullDevices_DeviceHeader_msg;
 extern const pb_msgdesc_t TerriBullDevices_MotorDevice_msg;
+extern const pb_msgdesc_t TerriBullDevices_RotationSensorDevice_msg;
 extern const pb_msgdesc_t TerriBullDevices_IMUAccel_msg;
 extern const pb_msgdesc_t TerriBullDevices_IMUDevice_msg;
 extern const pb_msgdesc_t TerriBullDevices_AnalogDevice_msg;
 extern const pb_msgdesc_t TerriBullDevices_MotorInitializeCallbackData_msg;
 extern const pb_msgdesc_t TerriBullDevices_MotorSetVelocityCallbackData_msg;
+extern const pb_msgdesc_t TerriBullDevices_RotationSensorInitializeCallbackData_msg;
+extern const pb_msgdesc_t TerriBullDevices_RotationSensorSetPositionCallbackData_msg;
+extern const pb_msgdesc_t TerriBullDevices_RotationSensorResetPositionCallbackData_msg;
 extern const pb_msgdesc_t TerriBullDevices_DeviceValue_msg;
 extern const pb_msgdesc_t TerriBullDevices_FunctionCall_msg;
 extern const pb_msgdesc_t TerriBullDevices_ReturnData_msg;
@@ -309,11 +389,15 @@ extern const pb_msgdesc_t TerriBullDevices_ReturnData_msg;
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define TerriBullDevices_DeviceHeader_fields &TerriBullDevices_DeviceHeader_msg
 #define TerriBullDevices_MotorDevice_fields &TerriBullDevices_MotorDevice_msg
+#define TerriBullDevices_RotationSensorDevice_fields &TerriBullDevices_RotationSensorDevice_msg
 #define TerriBullDevices_IMUAccel_fields &TerriBullDevices_IMUAccel_msg
 #define TerriBullDevices_IMUDevice_fields &TerriBullDevices_IMUDevice_msg
 #define TerriBullDevices_AnalogDevice_fields &TerriBullDevices_AnalogDevice_msg
 #define TerriBullDevices_MotorInitializeCallbackData_fields &TerriBullDevices_MotorInitializeCallbackData_msg
 #define TerriBullDevices_MotorSetVelocityCallbackData_fields &TerriBullDevices_MotorSetVelocityCallbackData_msg
+#define TerriBullDevices_RotationSensorInitializeCallbackData_fields &TerriBullDevices_RotationSensorInitializeCallbackData_msg
+#define TerriBullDevices_RotationSensorSetPositionCallbackData_fields &TerriBullDevices_RotationSensorSetPositionCallbackData_msg
+#define TerriBullDevices_RotationSensorResetPositionCallbackData_fields &TerriBullDevices_RotationSensorResetPositionCallbackData_msg
 #define TerriBullDevices_DeviceValue_fields &TerriBullDevices_DeviceValue_msg
 #define TerriBullDevices_FunctionCall_fields &TerriBullDevices_FunctionCall_msg
 #define TerriBullDevices_ReturnData_fields &TerriBullDevices_ReturnData_msg
@@ -330,6 +414,10 @@ extern const pb_msgdesc_t TerriBullDevices_ReturnData_msg;
 #define TerriBullDevices_MotorInitializeCallbackData_size 14
 #define TerriBullDevices_MotorSetVelocityCallbackData_size 17
 #define TerriBullDevices_ReturnData_size         49
+#define TerriBullDevices_RotationSensorDevice_size 20
+#define TerriBullDevices_RotationSensorInitializeCallbackData_size 6
+#define TerriBullDevices_RotationSensorResetPositionCallbackData_size 6
+#define TerriBullDevices_RotationSensorSetPositionCallbackData_size 15
 
 #ifdef __cplusplus
 } /* extern "C" */

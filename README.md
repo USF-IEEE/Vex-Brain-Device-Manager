@@ -4,10 +4,15 @@
 The TerriBull Device Manager is a comprehensive system designed for managing various types of VEX devices. It provides a framework for initializing and controlling devices such as motors, IMUs, and other peripherals using a unified interface. This system is built on top of the PROS library for VEX Robotics, leveraging its functionalities for device communication and control. More specific documentation related to using the library will be coming soon.
 
 ## Features
-- **Device Support**: Supports a wide range of devices including motors, IMUs, distance sensors, vision sensors, and more.
-- **Dynamic Initialization**: Devices can be dynamically initialized with specific configurations such as gear sets and brake modes for motors.
-- **Velocity Control**: Allows setting motor velocities with fine-tuned control, considering the gear set configuration.
-- **Extensible Design**: Designed to be easily extendable for additional device types and functionalities.
+- **Device Management**: from external computers, you can easily control and manage your VEX specific devices on a V5 brain. This can be used to offload compute power to 
+- **Device Support**: The framework supports a comprehensive range of VEX devices, including motors, IMUs, rotation sensors, distance sensors, vision sensors, and ADI (Analog/Digital Inputs).
+- **Dynamic Initialization and Configuration**: Devices can be dynamically initialized and configured with specific parameters such as gear sets for motors, enabling flexible and adaptive use cases.
+- **Velocity and Position Control**: Provides API for setting motor velocities and sensor positions, offering precise control over the hardware.
+- **Serialization and Deserialization**: Integrated with nanopb for efficient communication, allowing devices to send and receive structured data via serial communication.
+- **Extensible Architecture**: Designed with extensibility in mind, making it easy to add support for new devices or functionalities as needed.
+- **Unified Device Management**: Centralizes the management of different types of devices, facilitating easier tracking and control of hardware components.
+- **Real-Time Updates**: Supports real-time updates of device states, ensuring responsive and synchronous operation of robotics components.
+- **Error Handling**: Implements comprehensive error handling mechanisms, providing robustness and reliability in device operations.
 
 ## Requirements
 - PROS library for VEX Robotics
@@ -24,7 +29,7 @@ The TerriBull Device Manager is a comprehensive system designed for managing var
 2. cd into project
 
 ```bash
-python python nanopb/generator/nanopb_generator.py --out=. ./include/protos/vex.proto
+python nanopb/generator/nanopb_generator.py --out=. ./include/protos/vex.proto
 ```
 
 - You should now have generated the `.pb.h` and `.pb.c` files.
@@ -42,11 +47,16 @@ python python nanopb/generator/nanopb_generator.py --out=. ./include/protos/vex.
 #include <pb_common.h>
 ```
 
+Use the following command to automatically do this:
+```bash
+sed -i '/#include <pb.h>/a #include <pb_encode.h>\n#include <pb_decode.h>\n#include <pb_common.h>' include/protos/vex.pb.h
+```
+
 ### Creating the obj Files
 - Ensure you have `arm-none-eabi` compiler for Cortex
 
 ```bash
-mkdir ./obj/
+mkdir ./obj/ 2>/dev/null || echo "Creating obj/ Directory..."
 arm-none-eabi-g++ -c -o ./obj/vex.pb.o ./include/protos/vex.pb.c -I./nanopb/ -I. 
 arm-none-eabi-g++ -c -o ./obj/pb_encode.o ./nanopb/pb_encode.c -I./nanopb/ -I. 
 arm-none-eabi-g++ -c -o ./obj/pb_decode.o ./nanopb/pb_decode.c -I./nanopb/ -I. 
@@ -70,25 +80,100 @@ pros build --verbose
 
 ## Usage
 
+The DeviceManager class provides a high-level interface to manage and interact with various devices, such as motors and sensors, on a robotics platform. Below are examples of how to initialize a motor, set its velocity, and manage devices with the DeviceManager.
+
+- **Note:** the following examples use placeholders to demonstrate actual values. Remember to replace placeholder values like port, GEAR_SET, BREAK_MODE, and velocity with actual values according to your application needs.
+
 ### Initializing a Motor
+
+To initialize a motor with specific parameters, use the `motor_device_initialize` method from the `DeviceManager` class. Provide a `motor_initialize_callback_data` struct with the necessary configuration.
+
 ```cpp
+#include "DeviceManager.hpp"
+#include "TerriBullDevices.hpp"
+
 DeviceManager deviceManager;
-motor_initialize_callback_data motorData = {port, GEAR_SET, BREAK_MODE};
-deviceManager.motor_device_initialize(motorData);
+TerriBull::motor_initialize_callback_data motorData = {port, GEAR_SET, BREAK_MODE};
+deviceManager.motor_device_initialize(&motorData);
 ```
 
 ### Setting Motor Velocity
+
+To set the velocity of a motor, use the `motor_device_set_velocity` method with a `motor_set_velocity_callback_data` struct containing the desired velocity and port.
+
 ```cpp
-motor_set_velocity_callback_data velocityData = {port, velocity};
-deviceManager.motor_device_set_velocity(velocityData);
+TerriBull::motor_set_velocity_callback_data velocityData = {port, velocity};
+deviceManager.motor_device_set_velocity(&velocityData);
 ```
 
 ### Adding and Managing Devices
-Devices are managed through the `DeviceManager`, which allows adding, retrieving, and configuring devices through a unified interface.
+
+Devices are managed through the `DeviceManager`, which allows adding, retrieving, and updating devices through a unified interface.
+
+#### Adding a Device
+
+Devices, once initialized, can be added to the `DeviceManager` for easy access and management.
+
+```cpp
+MotorDevice motor;
+motor.header.port = port;
+// Set other motor attributes...
+
+deviceManager.add_device(&motor.header);
+```
+
+#### Retrieving a Device
+
+Retrieve a device by its port to update or read its properties.
+
+```cpp
+DeviceHeader* device = deviceManager.get_device(port);
+if (device != nullptr) {
+    // Cast to specific device type as needed and interact with it
+}
+```
+
+#### Updating Devices
+
+The `DeviceManager` can iterate over all managed devices to perform updates, such as reading sensor values or updating motor velocities.
+
+```cpp
+deviceManager.update_devices(deltaTime);
+```
+
+This method should be called periodically, where `deltaTime` is the time elapsed since the last update, to ensure device states are current.
+
+## DeviceManager.hpp and DeviceManager.cpp
+
+The `DeviceManager` class is defined in `DeviceManager.hpp` and implemented in `DeviceManager.cpp`. It encapsulates the logic for device management, including adding devices, retrieving them by port, and processing messages for device configuration.
+
+- **DeviceManager.hpp**: Declares the `DeviceManager` class, including its methods and internal data structures.
+- **DeviceManager.cpp**: Implements the `DeviceManager` class methods, such as device initialization, serialization of messages, and device updates.
+
+## Development
+
+### Adding a New Device to the Library
+
+- For `device.hpp` and `device.cpp`:
+
+1. Define the Device Struct
+2. Define the Device Message in proto (Device Struct, the callback data structs, the return value structs)
+3. Define the Device functions (Update, Initialize, Set)
+4. Define the Callbacks for the functions (port, additional parameters)
+5. Recompile using the README instructions
+
+
+- **Note:** this should be all you need for `device.hpp` and `device.cpp`. Also, some steps are dependent on prior steps, such as defining the callbacks, and defining the probuf Messages.
+
+- For `DeviceManager.cpp`;
+
+1. Add case handling for when new device functions are called in processMessage
+2. Add case handling for when a instance of the device is update in update_devices
+
 
 ## Contributors
 - Jonathan Koch: `jonathan.koch@caemilusa.com`
-- 
+- Fagan ...: `something@usf.edu` 
 
 ## License
 TODO

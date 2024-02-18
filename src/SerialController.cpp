@@ -85,9 +85,19 @@ bool SerialController::ReadBuffer()
     uint8_t buffer[buffer_size];
 
     copyStringToBuffer(input, buffer, buffer_size);
-    this->motherSys->processMessage(buffer, buffer_size); 
+    if (this->motherSys->processMessage(buffer, buffer_size)) {
+        SendData(CopyUInt8BufferToString(this->motherSys->get_buffer(), DEVICE_MANAGER_INTERNAL_BUFFER_SIZE));
+        return true;
+    } 
+    
+    return false;
+}
 
-    return true;
+std::string SerialController::CopyUInt8BufferToString(uint8_t* buffer, size_t b_size) {
+    std::ostringstream convert;
+    for (int i = 0; i < b_size; i++) {
+        convert << (int)buffer[i];
+    } return convert.str();
 }
 
 void SerialController::SendData(std::string data)

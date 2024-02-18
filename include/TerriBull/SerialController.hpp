@@ -20,6 +20,7 @@
 #include <string>
 #include <mutex>
 #include <cstring>
+#include <sstream> 
 
 using namespace std;
 
@@ -46,6 +47,7 @@ class SerialController {
     DeviceManager* motherSys;
 
     void copyStringToBuffer(const std::string& input, uint8_t* buffer, size_t buffer_size);
+    std::string CopyUInt8BufferToString(uint8_t* buffer, size_t b_size);
 
     public:
 

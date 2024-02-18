@@ -12,6 +12,9 @@ PB_BIND(TerriBullDevices_DeviceHeader, TerriBullDevices_DeviceHeader, AUTO)
 PB_BIND(TerriBullDevices_MotorDevice, TerriBullDevices_MotorDevice, AUTO)
 
 
+PB_BIND(TerriBullDevices_RotationSensorDevice, TerriBullDevices_RotationSensorDevice, AUTO)
+
+
 PB_BIND(TerriBullDevices_IMUAccel, TerriBullDevices_IMUAccel, AUTO)
 
 
@@ -27,6 +30,15 @@ PB_BIND(TerriBullDevices_MotorInitializeCallbackData, TerriBullDevices_MotorInit
 PB_BIND(TerriBullDevices_MotorSetVelocityCallbackData, TerriBullDevices_MotorSetVelocityCallbackData, AUTO)
 
 
+PB_BIND(TerriBullDevices_RotationSensorInitializeCallbackData, TerriBullDevices_RotationSensorInitializeCallbackData, AUTO)
+
+
+PB_BIND(TerriBullDevices_RotationSensorSetPositionCallbackData, TerriBullDevices_RotationSensorSetPositionCallbackData, AUTO)
+
+
+PB_BIND(TerriBullDevices_RotationSensorResetPositionCallbackData, TerriBullDevices_RotationSensorResetPositionCallbackData, AUTO)
+
+
 PB_BIND(TerriBullDevices_DeviceValue, TerriBullDevices_DeviceValue, AUTO)
 
 
@@ -40,4 +52,12 @@ PB_BIND(TerriBullDevices_ReturnData, TerriBullDevices_ReturnData, AUTO)
 
 
 
+
+#ifndef PB_CONVERT_DOUBLE_FLOAT
+/* On some platforms (such as AVR), double is really float.
+ * To be able to encode/decode double on these platforms, you need.
+ * to define PB_CONVERT_DOUBLE_FLOAT in pb.h or compiler command line.
+ */
+PB_STATIC_ASSERT(sizeof(double) == 8, DOUBLE_MUST_BE_8_BYTES)
+#endif
 

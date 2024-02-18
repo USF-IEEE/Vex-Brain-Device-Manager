@@ -52,6 +52,22 @@ typedef struct {
     // Other motor-specific members
 } MotorDevice;
 
+/**
+ * Updates the internal state of the motor
+*/
+void motor_device_update_internal(MotorDevice* motorDevice);
+
+typedef struct {
+    DeviceHeader header; // First member is the DeviceHeader
+    double position;
+} RotationSensorDevice;
+
+/**
+ * Updates the internal state of the motor
+*/
+void rotation_sensor_update_internal(RotationSensorDevice* rotDevice);
+
+// Motor Callbacks:
 
 typedef struct {
     uint8_t port; int GEAR_SET; int BREAK_MODE;
@@ -71,7 +87,21 @@ typedef struct  {
     int16_t velocity;
 } motor_set_velocity_callback_data;
 
+// TODO: Add Get Method
 
+// Rotation Sensors:
+typedef struct {
+    uint8_t port;
+} rotation_sensor_initialize_callback_data;
+
+typedef struct {
+    uint8_t port;
+    double position;
+} rotation_sensor_set_position_callback_data;
+
+typedef struct {
+    uint8_t port;
+} rotation_sensor_reset_position_callback_data;
 
 typedef struct {
     DeviceHeader header; 
@@ -97,7 +127,8 @@ typedef struct {
  * @param data contains {uint8_t port, int GEAR_SET, int BREAK_MODE}
  * @return device_callback_return_code 
  */
-device_callback_return_code motor_device_initalize(DeviceManager* _motherSys, motor_initialize_callback_data data);
+device_callback_return_code motor_device_initalize(DeviceManager* _motherSys, motor_initialize_callback_data data, TerriBullDevices_ReturnData& r_data);
+
 /**
  * @brief Should set motors velocity to the proto data
  * 
@@ -106,7 +137,32 @@ device_callback_return_code motor_device_initalize(DeviceManager* _motherSys, mo
  * @return device_callback_return_code 
  * This velocity corresponds to different actual speeds depending on the gearset used for the motor. This results in a range of +-100 for E_MOTOR_GEARSET_36, +-200 for E_MOTOR_GEARSET_18, and +-600 for blue. The velocity is held with PID to ensure consistent speed, as opposed to setting the motor’s voltage.
  */
-device_callback_return_code motor_device_set_velocity(DeviceManager* _motherSys, motor_set_velocity_callback_data data);
+device_callback_return_code motor_device_set_velocity(DeviceManager* _motherSys, motor_set_velocity_callback_data data, TerriBullDevices_ReturnData& r_data);
 
+/**
+ * @brief Should Initialize rotational sensor device with Port and proto data
+ * 
+ * @param data contains {uint8_t port}
+ * @return device_callback_return_code 
+ */
+device_callback_return_code rotation_sensor_initialize(DeviceManager* _motherSys, rotation_sensor_initialize_callback_data data, TerriBullDevices_ReturnData& r_data);
+
+/**
+ * @brief Set the Rotation Sensor position reading to a desired rotation value This function uses the following values of errno when an error state is reached: ENXIO - The given value is not within the range of V5 ports (1-21). ENODEV - The port cannot be configured as an Rotation Sensor
+ * 
+ * @param port – The V5 Rotation Sensor port number from 1-21
+ * @param data – contains {uint8_t port, double position} position in terms of ticks
+ * @return device_callback_return_code 
+*/
+device_callback_return_code rotation_sensor_set_position(DeviceManager* _motherSys, rotation_sensor_set_position_callback_data data, TerriBullDevices_ReturnData& r_data);
+
+/**
+ * @brief Reset Rotation Sensor Reset the current absolute position to be the same as the Rotation Sensor angle. This function uses the following values of errno when an error state is reached: ENXIO - The given value is not within the range of V5 ports (1-21). ENODEV - The port cannot be configured as an Rotation Sensor
+ * 
+ * @param port – The V5 Rotation Sensor port number from 1-21
+ * @param data – contains {uint8_t port}
+ * @return device_callback_return_code 
+*/
+device_callback_return_code rotation_sensor_reset_position(DeviceManager* _motherSys, rotation_sensor_reset_position_callback_data data, TerriBullDevices_ReturnData& r_data);
 
 #endif

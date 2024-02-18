@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package TerriBullDevices;
 
+// TODO: Update uint32 to work with device manager
+
 enum DeviceType {
   DEVICE_NONE = 0;
   DEVICE_MOTOR = 2;
@@ -14,6 +16,7 @@ enum DeviceType {
   DEVICE_OPTICAL = 16;
   DEVICE_GPS = 20;
   DEVICE_SERIAL = 129;
+  DEVICE_CONTROLLER = 242;
 }
 
 enum MotorGearSet {
@@ -50,6 +53,11 @@ message MotorDevice {
   // Other motor-specific members can be added here as needed.
 }
 
+message RotationSensorDevice {
+  DeviceHeader header = 1;
+  double position = 2;
+}
+
 message IMUAccel {
   float ax = 1;
   float ay = 2;
@@ -81,12 +89,25 @@ message MotorSetVelocityCallbackData {
   int32 velocity = 2; // Assuming velocity can be negative, hence int32.
 }
 
-// Message to get the device values, which contains one of the Devices (Motor, IMU, Analog)
+message RotationSensorInitializeCallbackData {
+  uint32 port = 1;
+}
+
+message RotationSensorSetPositionCallbackData {
+  uint32 port = 1;
+  double position = 2;
+}
+
+message RotationSensorResetPositionCallbackData {
+  uint32 port = 1;
+}
+
 message DeviceValue {
   oneof device {
     MotorDevice motorDevice = 1;
     IMUDevice imuDevice = 2;
     AnalogDevice analogDevice = 3;
+    RotationSensorDevice rotationSensorDevice = 4;
   }
 }
 
@@ -95,6 +116,10 @@ message FunctionCall {
   oneof callbackData {
     MotorInitializeCallbackData motorInitializeData = 1;
     MotorSetVelocityCallbackData motorSetVelocityData = 2;
+    RotationSensorInitializeCallbackData rotationSensorInitializeData = 3;
+    RotationSensorResetPositionCallbackData rotationSensorResetPositionData = 4;
+    RotationSensorSetPositionCallbackData rotationSensorSetPositionData = 5;
+    
     // ... TODO: ADD MORE CALLBACKS
   }
 }
