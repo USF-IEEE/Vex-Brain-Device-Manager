@@ -15,9 +15,9 @@ The TerriBull Device Manager is a comprehensive system designed for managing var
 - **Error Handling**: Implements comprehensive error handling mechanisms, providing robustness and reliability in device operations.
 
 ## Requirements
-- PROS library for VEX Robotics
-- nanopb
-- arm-none-eabi compiler Toolset for Linux or WSL
+- PROS library/CLI for VEX Robotics
+- nanopb (included as submodule)
+- arm-none-eabi compiler Toolset for Linux
 
 ## Installation/Compilation
 1. Ensure the PROS library is installed and properly configured in your development environment.
